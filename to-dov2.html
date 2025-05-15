@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List pro Páry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1200px;
+        }
+        h1, h2, h3 {
+            color: #334155;
+            text-align: center;
+        }
+        h1 { margin-bottom: 20px; }
+        h3 { margin-top: 20px; margin-bottom: 10px; font-size: 1.1rem; text-align: left;}
+
+        .input-section {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: grid;
+            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            align-items: end;
+        }
+
+        .input-section-button-row {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .input-section-button-row #add-task-btn {
+            min-width: 180px;
+            max-width: calc((100% - 3 * 15px) / 4);
+            width: 100%;
+        }
+
+        .category-management-section {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: grid;
+            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #475569;
+        }
+        input[type="text"],
+        input[type="date"],
+        select,
+        input[type="color"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            height: 42px;
+        }
+        input[type="color"] {
+            padding: 5px;
+        }
+
+        button {
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            height: 42px;
+            width: 100%;
+        }
+
+        #add-task-btn {
+            background-color: #10b981;
+        }
+        #add-task-btn:hover {
+            background-color: #059669;
+        }
+
+        #add-category-btn {
+            background-color: #60a5fa;
+        }
+        #add-category-btn:hover {
+            background-color: #3b82f6;
+        }
+
+        .tasks-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .user-tasks, .completed-tasks-section {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .user-tasks h2 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        .user1-heading { color: #3b82f6; border-bottom-color: #3b82f6; }
+        .shared-heading { color: #78716c; border-bottom-color: #78716c; font-size: 1.25rem; }
+        .user2-heading { color: #ec4899; border-bottom-color: #ec4899; }
+        .completed-tasks-section h2 {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+            margin-top: 0;
+            padding-bottom: 10px;
+            font-size: 1.25rem;
+        }
+
+        .task-item {
+            background-color: #ffffff;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            /* position: relative; Není již potřeba pro delete button */
+        }
+        .task-item-content { 
+            cursor: pointer;
+        }
+        .task-item .info { flex-grow: 1; margin-bottom: 8px; }
+        .task-item .info p { margin: 2px 0; color: #4b5563; }
+        .task-item .info .task-name { font-weight: 600; color: #1f2937; }
+        .task-item .info .task-duedate { font-size: 0.9em; color: #6b7280; }
+        .task-item .info .task-category-badge {
+            font-size: 0.8em;
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+        .task-item .actions { display: flex; justify-content: space-between; align-items: center; }
+        .task-item button.complete-btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: auto;
+        }
+        .task-item button.complete-btn:hover { background-color: #059669; }
+        .task-item .completed-info { font-size: 0.9em; color: #374151; }
+
+        /* .delete-task-btn CSS byla odstraněna */
+
+        .heart-animation {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 100px; color: #ef4444;
+            animation: heartBeat 0.5s ease-out forwards, fadeOutHeart 0.5s 1.5s ease-in forwards;
+            z-index: 1000; pointer-events: none;
+        }
+        @keyframes heartBeat {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes fadeOutHeart {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1001; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5); 
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content label { margin-top:10px;}
+        .modal-content input, .modal-content select { margin-bottom: 15px;}
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            width: auto; 
+            min-width: 100px;
+        }
+        #save-edit-task-btn { background-color: #2563eb; }
+        #save-edit-task-btn:hover { background-color: #1d4ed8; }
+        #cancel-edit-task-btn { background-color: #6b7280; }
+        #cancel-edit-task-btn:hover { background-color: #4b5563; }
+
+
+        @media (max-width: 900px) { .tasks-section { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            .input-section > div:not(.input-section-button-row) { 
+                grid-column: 1 / -1;
+            }
+            .input-section-button-row {
+                 grid-column: 1 / -1;
+            }
+             .input-section-button-row #add-task-btn {
+                width: 100%;
+                max-width: none;
+            }
+
+            .category-management-section { grid-template-columns: 1fr; }
+            .category-management-section > div {
+                 grid-column: 1 / -1;
+            }
+            .category-management-section > button {
+                grid-column: 1 / -1;
+            }
+            .modal-content { width: 95%; margin-top: 20%;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List pro Páry ❤️</h1>
+
+        <div class="input-section">
+            <div>
+                <label for="task-name">Název úkolu:</label>
+                <input type="text" id="task-name" placeholder="Např. Uvařit večeři">
+            </div>
+            <div>
+                <label for="task-due-date">Termín splnění:</label>
+                <input type="date" id="task-due-date">
+            </div>
+            <div>
+                <label for="task-category">Kategorie:</label>
+                <select id="task-category"></select>
+            </div>
+            <div>
+                <label for="task-assignee">Přiřadit komu:</label>
+                <select id="task-assignee">
+                    <option value="user1">Partner 1 👨</option>
+                    <option value="user2">Partner 2 👩</option>
+                    <option value="shared">👫 Společné</option>
+                </select>
+            </div>
+            <div class="input-section-button-row">
+                <button id="add-task-btn">Přidat úkol</button>
+            </div>
+        </div>
+
+        <h3>Správa kategorií</h3>
+        <div class="category-management-section">
+            <div>
+                <label for="new-category-name">Název nové kategorie:</label>
+                <input type="text" id="new-category-name" placeholder="Např. Zábava">
+            </div>
+            <div>
+                <label for="new-category-color">Barva kategorie:</label>
+                <input type="color" id="new-category-color" value="#71717a">
+            </div>
+            <button id="add-category-btn">Přidat kategorii</button>
+        </div>
+
+        <div class="tasks-section">
+            <div class="user-tasks">
+                <h2 class="user1-heading">👨</h2>
+                <div id="user1-tasks-list"></div>
+            </div>
+            <div class="user-tasks">
+                <h2 class="shared-heading">👫 Společné úkoly</h2>
+                <div id="shared-tasks-list"></div>
+            </div>
+            <div class="user-tasks">
+                <h2 class="user2-heading">👩</h2>
+                <div id="user2-tasks-list"></div>
+            </div>
+        </div>
+
+        <div class="completed-tasks-section">
+            <h2>Splněné úkoly 🎉</h2>
+            <div id="completed-tasks-list"></div>
+        </div>
+    </div>
+
+    <div id="heart-animation" class="heart-animation" style="display: none;">❤️</div>
+
+    <div id="edit-task-modal" class="modal">
+        <div class="modal-content">
+            <h3>Editovat úkol</h3>
+            <input type="hidden" id="edit-task-id">
+            <div>
+                <label for="edit-task-name">Název úkolu:</label>
+                <input type="text" id="edit-task-name">
+            </div>
+            <div>
+                <label for="edit-task-due-date">Termín splnění:</label>
+                <input type="date" id="edit-task-due-date">
+            </div>
+            <div>
+                <label for="edit-task-category">Kategorie:</label>
+                <select id="edit-task-category"></select>
+            </div>
+            <div>
+                <label for="edit-task-assignee">Přiřadit komu:</label>
+                <select id="edit-task-assignee">
+                    <option value="user1">Partner 1 👨</option>
+                    <option value="user2">Partner 2 👩</option>
+                    <option value="shared">👫 Společné</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-edit-task-btn">Zrušit</button>
+                <button id="save-edit-task-btn">Uložit změny</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const taskNameInput = document.getElementById('task-name');
+        const taskDueDateInput = document.getElementById('task-due-date');
+        const taskCategorySelect = document.getElementById('task-category');
+        const taskAssigneeInput = document.getElementById('task-assignee');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const user1TasksList = document.getElementById('user1-tasks-list');
+        const sharedTasksList = document.getElementById('shared-tasks-list');
+        const user2TasksList = document.getElementById('user2-tasks-list');
+        const completedTasksList = document.getElementById('completed-tasks-list');
+        const heartAnimationElement = document.getElementById('heart-animation');
+
+        // Category Management DOM Elements
+        const newCategoryNameInput = document.getElementById('new-category-name');
+        const newCategoryColorInput = document.getElementById('new-category-color');
+        const addCategoryBtn = document.getElementById('add-category-btn');
+
+        // Edit Modal DOM Elements
+        const editTaskModal = document.getElementById('edit-task-modal');
+        const editTaskIdInput = document.getElementById('edit-task-id');
+        const editTaskNameInput = document.getElementById('edit-task-name');
+        const editTaskDueDateInput = document.getElementById('edit-task-due-date');
+        const editTaskCategorySelect = document.getElementById('edit-task-category');
+        const editTaskAssigneeSelect = document.getElementById('edit-task-assignee');
+        const saveEditTaskBtn = document.getElementById('save-edit-task-btn');
+        const cancelEditTaskBtn = document.getElementById('cancel-edit-task-btn');
+
+        // Data storage
+        let tasks = JSON.parse(localStorage.getItem('coupleTasks')) || [];
+        let categories = []; 
+
+        const defaultCategories = [
+            { name: 'Domácnost', color: '#60a5fa', isCustom: false },
+            { name: 'Nákup', color: '#facc15', isCustom: false },
+            { name: 'Finance', color: '#34d399', isCustom: false },
+            { name: 'Vztah', color: '#f472b6', isCustom: false }
+        ];
+
+        const assigneeToEmoji = {
+            user1: '👨',
+            user2: '👩',
+            shared: '👫'
+        };
+
+        function initializeCategories() {
+            const storedCategories = JSON.parse(localStorage.getItem('coupleTaskCategories'));
+            if (storedCategories && storedCategories.length > 0) {
+                categories = storedCategories;
+            } else {
+                categories = [...defaultCategories];
+            }
+            defaultCategories.forEach(dc => {
+                if (!categories.find(c => c.name.toLowerCase() === dc.name.toLowerCase() && !c.isCustom)) {
+                    categories.unshift(dc); 
+                }
+            });
+            saveCategories();
+            populateCategoryDropdown(taskCategorySelect); 
+            populateCategoryDropdown(editTaskCategorySelect); 
+        }
+
+        function saveCategories() {
+            localStorage.setItem('coupleTaskCategories', JSON.stringify(categories));
+        }
+
+        function populateCategoryDropdown(selectElement) {
+            selectElement.innerHTML = ''; 
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.name;
+                option.textContent = category.name;
+                selectElement.appendChild(option);
+            });
+        }
+
+        function handleAddCategory() {
+            const name = newCategoryNameInput.value.trim();
+            const color = newCategoryColorInput.value;
+
+            if (name === '') {
+                alert('Prosím, zadejte název kategorie.');
+                return;
+            }
+            if (categories.find(cat => cat.name.toLowerCase() === name.toLowerCase())) {
+                alert('Kategorie s tímto názvem již existuje.');
+                return;
+            }
+
+            const newCategory = { name, color, isCustom: true };
+            categories.push(newCategory);
+            
+            saveCategories();
+            populateCategoryDropdown(taskCategorySelect);
+            populateCategoryDropdown(editTaskCategorySelect);
+            newCategoryNameInput.value = '';
+        }
+
+        function findCategoryColor(categoryName) {
+            const category = categories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
+            return category ? category.color : '#9ca3af';
+        }
+
+        function renderTasks() {
+            user1TasksList.innerHTML = '';
+            sharedTasksList.innerHTML = '';
+            user2TasksList.innerHTML = '';
+            completedTasksList.innerHTML = '';
+
+            tasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.classList.add('task-item');
+                taskElement.setAttribute('data-id', task.id);
+
+                let formattedDueDate = 'Nezadáno';
+                if (task.dueDate) {
+                    const [year, month, day] = task.dueDate.split('-');
+                    formattedDueDate = ${day}.${month}.${year};
+                }
+                
+                const originalAssigneeEmoji = assigneeToEmoji[task.assignee] || '';
+                const categoryColor = findCategoryColor(task.category);
+                const categoryNameDisplay = task.category || "Nezadáno";
+
+                const taskContentDiv = document.createElement('div');
+                taskContentDiv.classList.add('task-item-content');
+                taskContentDiv.innerHTML = `
+                    <div class="info">
+                        <p class="task-name">${task.name}</p>
+                        <p class="task-duedate">Termín: ${formattedDueDate}</p>
+                        <p><span class="task-category-badge" style="background-color: ${categoryColor}">${categoryNameDisplay}</span></p>
+                    </div>
+                `;
+                
+                const actionsDiv = document.createElement('div');
+                actionsDiv.classList.add('actions');
+                if (!task.completed) {
+                    const completeBtn = document.createElement('button');
+                    completeBtn.classList.add('complete-btn');
+                    completeBtn.textContent = 'Splnit';
+                    completeBtn.addEventListener('click', () => completeTask(task.id));
+                    actionsDiv.appendChild(completeBtn);
+
+                    taskContentDiv.addEventListener('click', () => openEditModal(task.id));
+
+                    // Odstraněno vytváření deleteBtn
+                    // const deleteBtn = document.createElement('button');
+                    // deleteBtn.classList.add('delete-task-btn');
+                    // deleteBtn.innerHTML = '&times;';
+                    // deleteBtn.title = 'Smazat úkol';
+                    // deleteBtn.addEventListener('click', (e) => {
+                    //     e.stopPropagation(); 
+                    //     deleteTask(task.id);
+                    // });
+                    // taskElement.appendChild(deleteBtn);
+
+                } else {
+                    const completedInfoSpan = document.createElement('span');
+                    completedInfoSpan.classList.add('completed-info');
+                    completedInfoSpan.textContent = Hotovo ${originalAssigneeEmoji};
+                    actionsDiv.appendChild(completedInfoSpan);
+                    taskElement.style.opacity = '0.7';
+                }
+                
+                taskElement.appendChild(taskContentDiv);
+                taskElement.appendChild(actionsDiv);
+
+
+                if (task.completed) {
+                    completedTasksList.appendChild(taskElement);
+                } else if (task.assignee === 'user1') {
+                    user1TasksList.appendChild(taskElement);
+                } else if (task.assignee === 'shared') {
+                    sharedTasksList.appendChild(taskElement);
+                } else if (task.assignee === 'user2') {
+                    user2TasksList.appendChild(taskElement);
+                }
+            });
+            saveTasks(); 
+        }
+
+        function addTask() {
+            const name = taskNameInput.value.trim();
+            const dueDate = taskDueDateInput.value;
+            const category = taskCategorySelect.value; 
+            const assignee = taskAssigneeInput.value;
+
+            if (name === '') {
+                alert('Prosím, zadejte název úkolu.');
+                return;
+            }
+            if (category === '' && categories.length > 0) { 
+                alert('Prosím, vyberte kategorii pro úkol.');
+                return;
+            }
+
+            const newTask = {
+                id: Date.now().toString(),
+                name,
+                dueDate,
+                category,
+                assignee,
+                completed: false
+            };
+
+            tasks.push(newTask);
+            renderTasks();
+
+            taskNameInput.value = '';
+            taskDueDateInput.value = '';
+        }
+
+        function completeTask(taskId) {
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            if (taskIndex > -1 && !tasks[taskIndex].completed) { 
+                heartAnimationElement.style.display = 'block';
+                heartAnimationElement.style.animation = 'none';
+                void heartAnimationElement.offsetWidth; 
+                heartAnimationElement.style.animation = '';
+
+                setTimeout(() => {
+                    heartAnimationElement.style.display = 'none';
+                    tasks[taskIndex].completed = true;
+                    renderTasks(); 
+                }, 2000); 
+            }
+        }
+
+        // Funkce deleteTask byla odstraněna
+        // function deleteTask(taskId) {
+        //     if (confirm('Opravdu chcete smazat tento úkol?')) {
+        //         tasks = tasks.filter(task => task.id !== taskId);
+        //         renderTasks();
+        //     }
+        // }
+
+        function openEditModal(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || task.completed) return; 
+
+            editTaskIdInput.value = task.id;
+            editTaskNameInput.value = task.name;
+            editTaskDueDateInput.value = task.dueDate;
+            editTaskCategorySelect.value = task.category;
+            editTaskAssigneeSelect.value = task.assignee;
+            
+            editTaskModal.style.display = 'block';
+        }
+
+        function closeEditModal() {
+            editTaskModal.style.display = 'none';
+        }
+
+        function handleSaveEditedTask() {
+            const taskId = editTaskIdInput.value;
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+
+            if (taskIndex > -1) {
+                tasks[taskIndex].name = editTaskNameInput.value.trim();
+                tasks[taskIndex].dueDate = editTaskDueDateInput.value;
+                tasks[taskIndex].category = editTaskCategorySelect.value;
+                tasks[taskIndex].assignee = editTaskAssigneeSelect.value;
+
+                if (tasks[taskIndex].name === '') {
+                    alert('Název úkolu nesmí být prázdný.');
+                    return;
+                }
+                renderTasks();
+                closeEditModal();
+            }
+        }
+
+        function saveTasks() {
+            localStorage.setItem('coupleTasks', JSON.stringify(tasks));
+        }
+
+        // Event Listeners
+        addTaskBtn.addEventListener('click', addTask);
+        addCategoryBtn.addEventListener('click', handleAddCategory);
+        saveEditTaskBtn.addEventListener('click', handleSaveEditedTask);
+        cancelEditTaskBtn.addEventListener('click', closeEditModal);
+
+        window.onclick = function(event) {
+            if (event.target == editTaskModal) {
+                closeEditModal();
+            }
+        }
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCategories(); 
+            renderTasks();          
+        });
+    </script>
+</body>
+</html>
